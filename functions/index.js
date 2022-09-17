@@ -1,3 +1,3 @@
 module.exports = {
-  ...require('./controllers/users'),
+  ...require('./controllers/potholes'),
 };

@@ -13,5 +13,8 @@ module.exports = {
   },
   rules: {
     'new-cap': 'off',
+    'indent': 'off',
+    'object-curly-spacing': 'off',
+    'max-len': 'off',
   },
 };
