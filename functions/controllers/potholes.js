@@ -1,12 +1,34 @@
 const functions = require('firebase-functions');
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const pointInPolygon = require('point-in-polygon');
 
 const admin = require('firebase-admin');
 admin.initializeApp();
 const db = admin.firestore();
 
 const potholeApp = express();
+const malaysianDistrictGeoJson = JSON.parse(fs.readFileSync(__dirname + '/../utilities/malaysia.districts.geojson', 'utf-8'));
+
+/**
+ *
+ * @param {number} lat
+ * @param {number} lon
+ * @return {string} A district name
+ */
+function getDistrictFromLatLon(lat, lon) {
+  let polygonFound = false;
+
+  for (const feature of malaysianDistrictGeoJson.features) {
+    polygonFound = pointInPolygon([lon, lat], feature.geometry.coordinates[0][0]);
+    if (polygonFound) {
+      return `${feature.properties.NAME_2} / ${feature.properties.NAME_1}`;
+    }
+  }
+
+  return 'Unknown';
+}
 
 potholeApp.use(cors({ origin: true }));
 
@@ -36,6 +58,9 @@ potholeApp.get('/:id', async (req, res) => {
 
 potholeApp.post('/', async (req, res) => {
   const pothole = req.body;
+
+  const areaName = getDistrictFromLatLon(pothole.lat, pothole.lon);
+  pothole.area = areaName;
 
   await db.collection('potholes').add(pothole);
 
